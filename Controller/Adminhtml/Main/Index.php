@@ -1,5 +1,4 @@
- <?php
-      namespace Airslamit\DumpOrder\Controller\Adminhtml\Main;
+<?php namespace Airslamit\DumpOrder\Controller\Adminhtml\Main;
 
       class Index extends \Magento\Backend\App\Action
       {
@@ -32,4 +31,4 @@
              return  $resultPage = $this->resultPageFactory->create();
         }
       }
-    ?>
+?>
