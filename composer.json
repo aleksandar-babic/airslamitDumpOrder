@@ -1,0 +1,19 @@
+{
+      "name": "airslamit/dump-order",
+      "description": "A module that dump every new order to csv in order to be synced with Fishbowl",
+      "type": "magento2-module",
+      "version": "1.0.0",
+      "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+      ],
+      "require": {
+        "php": "~5.6.0|7.0.2|7.0.4|~7.0.6"
+      },
+      "autoload": {
+        "files": [ "registration.php" ],
+        "psr-4": {
+          "Airslamit\\DumpOrder\\": ""
+        }
+      }
+    }

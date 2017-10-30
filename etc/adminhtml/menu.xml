@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+    <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+        <menu>
+          <add id="Airslamit_DumpOrder::dumporder" title="Dump Order" translate="title" module="Airslamit_DumpOrder" parent="Magento_Backend::content" sortOrder="50" dependsOnModule="Airslamit_DumpOrder" resource="Airslamit_DumpOrder::greetings"/>
+          <add id="Airslamit_DumpOrder::dumporder_mainpage" title="Main page" translate="title" module="Airslamit_DumpOrder" parent="Airslamit_DumpOrder::dumporder" sortOrder="10" dependsOnModule="Airslamit_DumpOrder" action="dumporder/main" resource="Airslamit_DumpOrder::dumporder"/>
+        </menu>
+    </config>
