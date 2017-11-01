@@ -43,7 +43,17 @@ class SaveAfter implements ObserverInterface
   private function getOrderData()
   {
     $dataArray = [];
-    $dataArray['orderId'] = $this->_order->getId();
+    $dataArray['orderNumber'] = $this->_order->getId();
+    $dataArray['orderDate'] = date("m/d/Y", strtotime($this->_order->getCreatedAt()));
+    $dataArray['orderTax'] = "";
+    $dataArray['orderShipping'] = "";
+    $dataArray['orderHandling'] = "";
+    $dataArray['orderDiscount'] = "";
+    $dataArray['orderNote'] = "";
+    $dataArray['orderShipMethod'] = "";
+    $dataArray['orderCustomerPO'] = $dataArray['orderNumber'];
+    $dataArray['orderQBClass'] = "";
+    $dataArray['orderLG'] = "";
     return $dataArray;
   }
 
