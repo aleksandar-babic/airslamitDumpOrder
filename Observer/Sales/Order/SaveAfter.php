@@ -28,7 +28,7 @@ class SaveAfter implements ObserverInterface
   /**
    * Will return array of CSV headers that are needed for Fishbowl order import.
    * More details at https://www.fishbowlinventory.com/w/files/csv/importGenericSC.html
-   * @return type
+   * @return string[]
    */
   private function getCSVHeaders()
   {
@@ -38,7 +38,7 @@ class SaveAfter implements ObserverInterface
 
   /**
    * Will return array of first 11 values for fields that start with Order* 
-   * @return type
+   * @return string[]
    */
   private function getOrderData()
   {
@@ -55,6 +55,58 @@ class SaveAfter implements ObserverInterface
     $dataArray['orderQBClass'] = "";
     $dataArray['orderLG'] = "";
     return $dataArray;
+  }
+
+  /**
+   * Will return array of values for shipping fields.
+   * @return string[]
+   */
+  private function getShippingData(){
+    $shippingAddressObj = $this->_order->getShippingAddress();
+    $shippingArray = [];
+    $shippingArray['shipFirstName'] = $shippingAddressObj->getFirstname();
+    $shippingArray['shipLastName'] = $shippingAddressObj->getLastName();
+    $shippingAddresses = $shippingAddressObj->getStreet();
+    $shippingArray['shipAddress1'] = $shippingAddresses[0];
+    if(count($shippingAddresses) > 1){
+      $shippingArray['shipAddress2'] = $shippingAddresses[1];
+    } else {
+      $shippingArray['shipAddress2'] = "";
+    }
+    $shippingArray['shipCity'] = $shippingAddressObj->getCity();
+    $shippingArray['shipState'] = $shippingAddressObj->getRegionCode();
+    $shippingArray['shipZip'] = $shippingAddressObj->getPostcode();
+    $shippingArray['shipCountry'] = $shippingAddressObj->getCountryId();
+    $shippingArray['shipEmail'] = $shippingAddressObj->getEmail();
+    $shippingArray['shipPhone'] = $shippingAddressObj->getTelephone();
+    $shippingArray['shipFax'] = $shippingAddressObj->getFax();
+    return $shippingArray;
+  }
+
+  /**
+   * Will return array of values for billing fields.
+   * @return string[]
+   */
+  private function getBillingData(){
+    $billingAddressObj = $this->_order->getBillingAddress();
+    $billingArray = [];
+    $billingArray['billFirstName'] = $billingAddressObj->getFirstname();
+    $billingArray['billLastName'] = $billingAddressObj->getLastName();
+    $billingAddresses = $billingAddressObj->getStreet();
+    $billingArray['billAddress1'] = $billingAddresses[0];
+    if(count($billingAddresses) > 1) {
+      $billingArray['billAddress2'] = $billingAddresses[1];
+    } else {
+      $billingArray['billAddress2'] = "";
+    }
+    $billingArray['billCity'] = $billingAddressObj->getCity();
+    $billingArray['billState'] = $billingAddressObj->getRegionCode();
+    $billingArray['billZip'] = $billingAddressObj->getPostcode();
+    $billingArray['billCountry'] = $billingAddressObj->getCountryId();
+    $billingArray['billEmail'] = $billingAddressObj->getEmail();
+    $billingArray['billPhone'] = $billingAddressObj->getTelephone();
+    $billingArray['billFax'] = $billingAddressObj->getFax();
+    return $billingArray;
   }
 
   /**
@@ -76,11 +128,15 @@ class SaveAfter implements ObserverInterface
    */
   private function generateOutput()
   {
-    $this->_orderFilePath = $this->_ordersDir.$this->_order->getId();
+    $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$this->_order->getId().".csv";
 
     $orderHeaders = $this->getCSVHeaders();
+
     $orderData = $this->getOrderData();
-    $mergedArray = array_merge($orderData);
+    $shippingData = $this->getShippingData();
+    $billingData = $this->getBillingData();
+
+    $mergedArray = array_merge($orderData, $shippingData, $billingData);
 
     $this->writeCSV($orderHeaders,$mergedArray);
   }
@@ -93,6 +149,6 @@ class SaveAfter implements ObserverInterface
   public function execute(\Magento\Framework\Event\Observer $observer)
   {
     $this->_order = $observer->getEvent()->getOrder();
-	  $this->generateOutput();
+    $this->generateOutput();
   }
 }
