@@ -6,7 +6,7 @@ class CSVGenerator {
 	protected $_order;
 	protected $_filePath;
 
-	/**
+  /**
    * Will return array of CSV headers that are needed for Fishbowl order import.
    * More details at https://www.fishbowlinventory.com/w/files/csv/importGenericSC.html
    * @return string[]
