@@ -130,15 +130,12 @@ class SaveAfter implements ObserverInterface
   {
     $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$this->_order->getId().".csv";
 
-    $orderHeaders = $this->getCSVHeaders();
-
-    $orderData = $this->getOrderData();
-    $shippingData = $this->getShippingData();
-    $billingData = $this->getBillingData();
-
-    $mergedArray = array_merge($orderData, $shippingData, $billingData);
-
-    $this->writeCSV($orderHeaders,$mergedArray);
+    $orderHeadersArray = $this->getCSVHeaders();
+    $orderDataArray = $this->getOrderData();
+    $shippingDataArray = $this->getShippingData();
+    $billingDataArray = $this->getBillingData();
+    $mergedArray = array_merge($orderDataArray, $shippingDataArray, $billingDataArray); //Merge all data from above arrays to one array
+    $this->writeCSV($orderHeadersArray,$mergedArray); //Write merged array to CSV
   }
 
   /**
