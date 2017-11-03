@@ -93,6 +93,39 @@ class CSVGenerator {
   }
 
   /**
+   * Will return array of values related to single item in order.
+   * @param type $item 
+   * @return string[]
+   */
+  private function getItemData($item)
+  {
+    $itemDataArray = [];
+    $itemDataArray['itemType'] = "10";
+    $itemDataArray['itemNumber'] = $item->getSku();
+    $itemDataArray['itemPrice'] = $item->getPrice();
+    $itemDataArray['itemQuantity'] = $item->getQtyOrdered();
+    $itemDataArray['itemUOM'] = "";
+    $itemDataArray['itemTaxable'] = "";
+    $itemDataArray['itemQBClass'] = "";
+    $itemDataArray['itemNote'] = "";
+    $itemDataArray['kitItem'] = ""; //TODO work on this value
+    $itemDataArray['showItem'] = "";
+    return $itemDataArray;
+  }
+
+  /**
+   * Will write dummy item row(example shipping row).
+   * @param type $itemType 
+   * @param type|string $itemNumber 
+   * @param type|string $itemPrice 
+   * @return string[]
+   */
+  private function getDummyItem($itemType, $itemNumber = "", $itemPrice = "")
+  {
+    return [$itemType,$itemNumber,$itemPrice,"","","","","","",""];
+  }
+
+  /**
    * Will write headers and all values to CSV file.
    * @param type $orderHeaders 
    * @param type $orderValues 
@@ -107,17 +140,50 @@ class CSVGenerator {
   }
 
   /**
-   * Will get headers, merge all values and call function that will write CSV file.
+   * Will write CSV headers to filePath property.
+   * @return type
+   */
+  private function writeHeaders()
+  {
+    $handle = fopen($this->_filePath, "a+");
+    fputcsv($handle, $this->getCSVHeaders());
+    fclose($handle);
+  }
+
+  /**
+   * Will append data to existing CSV file.
+   * @param type $values 
+   * @return type
+   */
+  private function appendToCSVFile($values){
+  	$handle = fopen($this->_filePath, "a+");
+    fputcsv($handle, $values);
+    fclose($handle);
+  }
+
+  /**
+   * Will write headers, merge all values and call function that will write CSV file.
    * @return type
    */
   public function generateCSVFile()
   {
-    $orderHeadersArray = $this->getCSVHeaders();
+    //Getters for all meta values
     $orderDataArray = $this->getOrderData();
     $shippingDataArray = $this->getShippingData();
     $billingDataArray = $this->getBillingData();
-    $mergedArray = array_merge($orderDataArray, $shippingDataArray, $billingDataArray); //Merge all data from above arrays to one array
-    $this->writeCSVWithHeaders($orderHeadersArray,$mergedArray); //Write merged array to CSV
+
+    $this->writeHeaders(); //Will create order CSV file and write headers to it.
+
+    //Will merge all meta data + item data and append it to CSV file.
+    foreach ($this->_order->getAllItems() as $key => $item) {
+      $itemDataArray = $this->getItemData($item);
+    	$mergedArray = array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $itemDataArray);
+      $this->appendToCSVFile($mergedArray);
+    }
+    //Populating additonal 3 rows for shipping, subtotal and tax.
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("60", "shipping", "0")));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("40")));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("70", "Online SalesTax", "0")));
   }
 
   public function setOrder($order){
