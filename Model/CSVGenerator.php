@@ -97,20 +97,38 @@ class CSVGenerator {
    * @param type $item 
    * @return string[]
    */
-  private function getItemData($item)
+  private function getItemData($item, $csvKitFile="/var/www/store/KitItems19.csv")
   {
+  	$isKitItem = $this->isKitItem($csvKitFile, $item->getSku());
     $itemDataArray = [];
-    $itemDataArray['itemType'] = "10";
+    $itemDataArray['itemType'] = $isKitItem?"80":"10";
     $itemDataArray['itemNumber'] = $item->getSku();
     $itemDataArray['itemPrice'] = $item->getPrice();
     $itemDataArray['itemQuantity'] = $item->getQtyOrdered();
     $itemDataArray['itemUOM'] = "";
-    $itemDataArray['itemTaxable'] = "";
+    $itemDataArray['itemTaxable'] = ($item->getTaxAmount() > 0)?"TRUE":"FALSE";
     $itemDataArray['itemQBClass'] = "";
     $itemDataArray['itemNote'] = "";
-    $itemDataArray['kitItem'] = ""; //TODO work on this value
+    $itemDataArray['kitItem'] = $isKitItem?"1":"0";
     $itemDataArray['showItem'] = "";
     return $itemDataArray;
+  }
+
+  /**
+   * Will return array of values related to payment fields.
+   * @return string[]
+   */
+  private function getPaymentData(){
+    $paymentObject = $this->_order->getPayment();
+    $paymentArray = [];
+    $paymentArray['paymentProcess'] = "TRUE";
+    $paymentArray['paymentTotal'] = $this->_order->getGrandTotal();
+    $paymentArray['paymentMethod'] = $paymentObject->getMethod();
+    $paymentArray['paymentTransactionId'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$paymentObject->getTransactionId():"";
+    $paymentArray['PaymentMisc'] = "";
+    $ccExp = $paymentObject->getCcExpMonth()."/1/".$paymentObject->getCcExpYear();
+    $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$ccExp:"";
+    return $paymentArray;
   }
 
   /**
@@ -123,6 +141,26 @@ class CSVGenerator {
   private function getDummyItem($itemType, $itemNumber = "", $itemPrice = "")
   {
     return [$itemType,$itemNumber,$itemPrice,"","","","","","",""];
+  }
+
+  /**
+   * Will check if given item is part of Kit.
+   * @param type $filename 
+   * @param type $sku 
+   * @return boolean
+   */
+  private function isKitItem($filename, $sku) {
+    $f = fopen($filename, "r");
+    $result = false;
+    while ($row = fgetcsv($f)) {
+        if (strtolower($row[1]) == strtolower($sku)) {
+        	if($row[0] == "KitItem")
+            	$result = true;
+            break;
+        }
+    }
+    fclose($f);
+    return $result;
   }
 
   /**
@@ -171,19 +209,20 @@ class CSVGenerator {
     $orderDataArray = $this->getOrderData();
     $shippingDataArray = $this->getShippingData();
     $billingDataArray = $this->getBillingData();
+    $paymentDataArray = $this->getPaymentData();
 
     $this->writeHeaders(); //Will create order CSV file and write headers to it.
 
     //Will merge all meta data + item data and append it to CSV file.
     foreach ($this->_order->getAllItems() as $key => $item) {
       $itemDataArray = $this->getItemData($item);
-    	$mergedArray = array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $itemDataArray);
+      $mergedArray = array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $itemDataArray, $paymentDataArray);
       $this->appendToCSVFile($mergedArray);
     }
     //Populating additonal 3 rows for shipping, subtotal and tax.
-    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("60", "shipping", "0")));
-    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("40")));
-    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("70", "Online SalesTax", "0")));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("60", "shipping", "0"), $paymentDataArray));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("40"), $paymentDataArray));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("70", "Online SalesTax", "0"), $paymentDataArray));
   }
 
   public function setOrder($order){
