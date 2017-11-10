@@ -109,7 +109,7 @@ class CSVGenerator {
     $itemDataArray['itemTaxable'] = ($item->getTaxAmount() > 0)?"TRUE":"FALSE";
     $itemDataArray['itemQBClass'] = "";
     $itemDataArray['itemNote'] = "";
-    $itemDataArray['kitItem'] = $isKitItem?"1":"0";
+    $itemDataArray['kitItem'] = $isKitItem?"true":"false";
     $itemDataArray['showItem'] = "";
     return $itemDataArray;
   }
