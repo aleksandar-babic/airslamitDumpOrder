@@ -38,6 +38,8 @@ class SaveAfter implements ObserverInterface
     $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$this->_order->getRealOrderId().".csv";
     $this->_csvGenerator->setOrder($this->_order);
     $this->_csvGenerator->setFilePath($this->_orderFilePath);
-    $this->_csvGenerator->generateCSVFile();
+    if(!file_exists($this->_orderFilePath)) {
+      $this->_csvGenerator->generateCSVFile();
+    }
   }
 }

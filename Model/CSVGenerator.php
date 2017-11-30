@@ -97,7 +97,7 @@ class CSVGenerator {
    * @param type $item 
    * @return string[]
    */
-  private function getItemData($item, $csvKitFile="/var/www/store/KitItems19.csv")
+  private function getItemData($item, $csvKitFile="/var/www/wheelsnparts/KitItems19.csv")
   {
   	$isKitItem = $this->isKitItem($csvKitFile, $item->getSku());
     $itemDataArray = [];
@@ -109,8 +109,8 @@ class CSVGenerator {
     $itemDataArray['itemTaxable'] = ($item->getTaxAmount() > 0)?"TRUE":"FALSE";
     $itemDataArray['itemQBClass'] = "";
     $itemDataArray['itemNote'] = "";
-    $itemDataArray['kitItem'] = $isKitItem?"true":"false";
-    $itemDataArray['showItem'] = "";
+    $itemDataArray['kitItem'] = $isKitItem?"1":"0";
+    $itemDataArray['showItem'] = "0";
     return $itemDataArray;
   }
 
@@ -126,8 +126,9 @@ class CSVGenerator {
     $paymentArray['paymentMethod'] = $paymentObject->getMethod();
     $paymentArray['paymentTransactionId'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$paymentObject->getTransactionId():"";
     $paymentArray['PaymentMisc'] = "";
-    $ccExp = $paymentObject->getCcExpMonth()."/1/".$paymentObject->getCcExpYear();
-    $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$ccExp:"";
+    $tmpShortYearArray = str_split(strval($paymentObject->getCcExpYear()));
+    $ccExp = $paymentObject->getCcExpMonth()."/".$tmpShortYearArray[2].$tmpShortYearArray[3];
+    $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal")?$ccExp:"";
     return $paymentArray;
   }
 
@@ -140,7 +141,7 @@ class CSVGenerator {
    */
   private function getDummyItem($itemType, $itemNumber = "", $itemPrice = "")
   {
-    return [$itemType,$itemNumber,$itemPrice,"","","","","","",""];
+    return [$itemType,$itemNumber,$itemPrice,"1","","FALSE","","","",""];
   }
 
   /**
@@ -151,12 +152,12 @@ class CSVGenerator {
    */
   private function isKitItem($filename, $sku) {
     $f = fopen($filename, "r");
-    $result = false;
+    $result = true;
     while ($row = fgetcsv($f)) {
         if (strtolower($row[1]) == strtolower($sku)) {
-        	if($row[0] == "KitItem")
-            	$result = true;
-            break;
+        	if(strtolower($row[0]) == "product" && strtolower($row[7]) == "true")
+            	$result = false;
+          break;
         }
     }
     fclose($f);
@@ -165,7 +166,7 @@ class CSVGenerator {
 
   /**
    * Will write headers and all values to CSV file.
-   * @param type $orderHeaders 
+   * @param type $orderHeaders
    * @param type $orderValues 
    * @return type
    */
@@ -210,6 +211,7 @@ class CSVGenerator {
     $shippingDataArray = $this->getShippingData();
     $billingDataArray = $this->getBillingData();
     $paymentDataArray = $this->getPaymentData();
+
 
     $this->writeHeaders(); //Will create order CSV file and write headers to it.
 
