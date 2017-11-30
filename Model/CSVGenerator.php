@@ -126,8 +126,10 @@ class CSVGenerator {
     $paymentArray['paymentMethod'] = $paymentObject->getMethod();
     $paymentArray['paymentTransactionId'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$paymentObject->getTransactionId():"";
     $paymentArray['PaymentMisc'] = "";
-    $tmpShortYearArray = str_split(strval($paymentObject->getCcExpYear()));
-    $ccExp = $paymentObject->getCcExpMonth()."/".$tmpShortYearArray[2].$tmpShortYearArray[3];
+    if(($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal")){
+      $tmpShortYearArray = str_split(strval($paymentObject->getCcExpYear()));
+      $ccExp = $paymentObject->getCcExpMonth()."/".$tmpShortYearArray[2].$tmpShortYearArray[3];
+    }
     $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal")?$ccExp:"";
     return $paymentArray;
   }
@@ -152,11 +154,11 @@ class CSVGenerator {
    */
   private function isKitItem($filename, $sku) {
     $f = fopen($filename, "r");
-    $result = true;
+    $result = false;
     while ($row = fgetcsv($f)) {
         if (strtolower($row[1]) == strtolower($sku)) {
-        	if(strtolower($row[0]) == "product" && strtolower($row[7]) == "true")
-            	$result = false;
+        	if(strtolower($row[0]) == "product" && strtolower($row[7]) != "true")
+            	$result = true;
           break;
         }
     }
