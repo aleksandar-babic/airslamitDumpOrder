@@ -10,17 +10,23 @@ class SaveAfter implements ObserverInterface
   protected $_order;
   protected $_orderFilePath;
   protected $_csvGenerator;
+  protected $_helper;
 
   /**
    * Constructor will setup working directory and order directory variables, create directory to keep orders CSV files if it does not already exist.
    * @param \Magento\Framework\Filesystem\DirectoryList $workingDir 
    * @return type
    */
-  public function __construct(\Magento\Framework\Filesystem\DirectoryList $workingDir, \Airslamit\DumpOrder\Model\CSVGenerator $csvGenerator)
+  public function __construct(
+    \Magento\Framework\Filesystem\DirectoryList $workingDir, 
+    \Airslamit\DumpOrder\Model\CSVGenerator $csvGenerator,
+    \Airslamit\DumpOrder\Helper\Data $helper
+    )
   {
     $this->_workingDir = $workingDir;
     $this->_ordersDir = $this->_workingDir->getPath("var")."/orders/";
     $this->_csvGenerator = $csvGenerator;
+    $this->_helper = $helper;
 
     if (!file_exists($this->_ordersDir)) {
       mkdir($this->_ordersDir, 0777, true);
@@ -35,7 +41,16 @@ class SaveAfter implements ObserverInterface
   public function execute(\Magento\Framework\Event\Observer $observer)
   {
     $this->_order = $observer->getEvent()->getOrder();
-    $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$this->_order->getRealOrderId().".csv";
+    $isPrefixEnabled = $this->_helper->getGeneralConfig('enable');
+    if ($isPrefixEnabled == "0") {
+      $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$this->_order->getRealOrderId().".csv";  
+    } else {
+      $prefixIdValue = $this->_helper->getGeneralConfig('id_prefix');
+      $customOrderId = $prefixIdValue.ltrim($this->_order->getRealOrderId(), '0'); // Trim leading zeros in order id
+      $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$customOrderId.".csv";
+      $this->_csvGenerator->setCustomOrderId($customOrderId);
+    }
+
     $this->_csvGenerator->setOrder($this->_order);
     $this->_csvGenerator->setFilePath($this->_orderFilePath);
     if(!file_exists($this->_orderFilePath)) {

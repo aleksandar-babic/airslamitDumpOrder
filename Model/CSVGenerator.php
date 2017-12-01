@@ -5,6 +5,7 @@ class CSVGenerator {
 
 	protected $_order;
 	protected $_filePath;
+  protected $_customOrderId;
 
   /**
    * Will return array of CSV headers that are needed for Fishbowl order import.
@@ -24,7 +25,7 @@ class CSVGenerator {
   private function getOrderData()
   {
     $dataArray = [];
-    $dataArray['orderNumber'] = $this->_order->getRealOrderId();
+    $dataArray['orderNumber'] = ($this->_customOrderId)?$this->_customOrderId:$this->_order->getRealOrderId();
     $dataArray['orderDate'] = date("m/d/Y", strtotime($this->_order->getCreatedAt()));
     $dataArray['orderTax'] = "";
     $dataArray['orderShipping'] = "";
@@ -97,7 +98,7 @@ class CSVGenerator {
    * @param type $item 
    * @return string[]
    */
-  private function getItemData($item, $csvKitFile="/var/www/wheelsnparts/KitItems19.csv")
+  private function getItemData($item, $csvKitFile="/var/www/store/KitItems19.csv")
   {
   	$isKitItem = $this->isKitItem($csvKitFile, $item->getSku());
     $itemDataArray = [];
@@ -229,11 +230,15 @@ class CSVGenerator {
     $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("70", "Online SalesTax", "0"), $paymentDataArray));
   }
 
-  public function setOrder($order){
+  public function setOrder($order) {
   	$this->_order = $order;
   }
 
-  public function setFilePath($filePath){
+  public function setFilePath($filePath) {
   	$this->_filePath = $filePath;
+  }
+
+  public function setCustomOrderId($customOrderId) {
+    $this->_customOrderId = $customOrderId;
   }
 }
