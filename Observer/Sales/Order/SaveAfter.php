@@ -46,7 +46,7 @@ class SaveAfter implements ObserverInterface
       $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$this->_order->getRealOrderId().".csv";  
     } else {
       $prefixIdValue = $this->_helper->getGeneralConfig('id_prefix');
-      $customOrderId = $prefixIdValue.ltrim($this->_order->getRealOrderId(), '0'); // Trim leading zeros in order id
+      $customOrderId = $prefixIdValue.$this->_order->getRealOrderId();
       $this->_orderFilePath = $this->_ordersDir."SalesOrderGeneric".$customOrderId.".csv";
       $this->_csvGenerator->setCustomOrderId($customOrderId);
     }
