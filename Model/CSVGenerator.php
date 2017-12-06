@@ -98,7 +98,7 @@ class CSVGenerator {
    * @param type $item 
    * @return string[]
    */
-  private function getItemData($item, $csvKitFile="/var/www/store/KitItems19.csv")
+  private function getItemData($item, $csvKitFile="/var/www/store/Product1.csv")
   {
   	$isKitItem = $this->isKitItem($csvKitFile, $item->getSku());
     $itemDataArray = [];
@@ -155,12 +155,11 @@ class CSVGenerator {
    */
   private function isKitItem($filename, $sku) {
     $f = fopen($filename, "r");
-    $result = false;
+    $result = true;
     while ($row = fgetcsv($f)) {
-        if (strtolower($row[1]) == strtolower($sku)) {
-        	if(strtolower($row[0]) == "product" && strtolower($row[7]) != "true")
-            	$result = true;
-          break;
+        if (strtolower($row[14]) == strtolower($sku)) {
+            	$result = false;
+              break;
         }
     }
     fclose($f);
