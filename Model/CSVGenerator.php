@@ -157,7 +157,7 @@ class CSVGenerator {
     $f = fopen($filename, "r");
     $result = true;
     while ($row = fgetcsv($f)) {
-        if (strtolower($row[14]) == strtolower($sku)) {
+        if (strtolower($row[0]) == strtolower($sku)) {
             	$result = false;
               break;
         }
