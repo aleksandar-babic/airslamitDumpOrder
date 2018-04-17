@@ -127,11 +127,11 @@ class CSVGenerator {
     $paymentArray['paymentMethod'] = $paymentObject->getMethod();
     $paymentArray['paymentTransactionId'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$paymentObject->getTransactionId():"";
     $paymentArray['PaymentMisc'] = "";
-    if(($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal")){
+    if(($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal" && $paymentArray['paymentMethod'] != "affirm_gateway")){
       $tmpShortYearArray = str_split(strval($paymentObject->getCcExpYear()));
       $ccExp = $paymentObject->getCcExpMonth()."/".$tmpShortYearArray[2].$tmpShortYearArray[3];
     }
-    $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal")?$ccExp:"";
+    $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal" && $paymentArray['paymentMethod'] != "affirm_gateway")?$ccExp:"";
     return $paymentArray;
   }
 
