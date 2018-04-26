@@ -6,6 +6,11 @@ class CSVGenerator {
 	protected $_order;
 	protected $_filePath;
   protected $_customOrderId;
+  protected $_dir;
+
+  public function __construct(\Magento\Framework\Filesystem\DirectoryList $dir) {
+    $this->_dir = $dir;
+  }
 
   /**
    * Will return array of CSV headers that are needed for Fishbowl order import.
@@ -103,9 +108,13 @@ class CSVGenerator {
    * @param type $item 
    * @return string[]
    */
-  private function getItemData($item, $csvKitFile="/app/Product1.csv")
+  private function getItemData($item, $csvKitFile="")
   {
-  	$isKitItem = $this->isKitItem($csvKitFile, $item->getSku());
+    if ($csvKitFile = ($csvKitFile === "")) {
+      $csvKitFile = $this->_dir->getRoot() . '/Product1.csv';
+    }
+    $isKitItem = (file_exists($csvKitFile)) ? 
+                $this->isKitItem($csvKitFile, $item->getSku()) : false;
     $itemDataArray = [];
     $itemDataArray['itemType'] = $isKitItem?"80":"10";
     $itemDataArray['itemNumber'] = $item->getSku();
