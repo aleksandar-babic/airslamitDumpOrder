@@ -14,7 +14,14 @@ class CSVGenerator {
    */
   private function getCSVHeaders()
   {
-    $headers = "OrderNumber,OrderDate,OrderTax,OrderShipping,OrderHandling,OrderDiscount,OrderNote,OrderShipMethod,OrderCustomerPO,OrderQBClass,OrderLG,ShipFirstName,ShipLastName,ShipAddress1,ShipAddress2,ShipCity,ShipState,ShipZip,ShipCountry,ShipEmail,ShipPhone,ShipFax,BillFirstName,BillLastName,BillAddress1,BillAddress2,BillCity,BillState,BillZip,BillCountry,BillEmail,BillPhone,BillFax,ItemType,ItemNumber,ItemPrice,ItemQuantity,ItemUOM,ItemTaxable,ItemQBClass,ItemNote,KitItem,ShowItem,PaymentProcess,PaymentTotal,Payment Method,PaymentTransactionID,PaymentMisc,PaymentExpirationDate";
+    $headers = "OrderNumber,OrderDate,OrderTax,OrderShipping,OrderHandling,OrderDiscount,
+    OrderNote,OrderShipMethod,OrderCustomerPO,OrderQBClass,OrderLG,ShipFirstName,
+    ShipLastName,ShipAddress1,ShipAddress2,ShipCity,ShipState,ShipZip,ShipCountry,
+    ShipEmail,ShipPhone,ShipFax,BillFirstName,BillLastName,BillAddress1,BillAddress2,
+    BillCity,BillState,BillZip,BillCountry,BillEmail,BillPhone,BillFax,ItemType,
+    ItemNumber,ItemPrice,ItemQuantity,ItemUOM,ItemTaxable,ItemQBClass,ItemNote,
+    KitItem,ShowItem,PaymentProcess,PaymentTotal,Payment Method,PaymentTransactionID,
+    PaymentMisc,PaymentExpirationDate";
     return explode(",", $headers);
   }
 
@@ -25,7 +32,8 @@ class CSVGenerator {
   private function getOrderData()
   {
     $dataArray = [];
-    $dataArray['orderNumber'] = ($this->_customOrderId)?$this->_customOrderId:$this->_order->getRealOrderId();
+    $dataArray['orderNumber'] = ($this->_customOrderId)? 
+                                $this->_customOrderId : $this->_order->getRealOrderId();
     $dataArray['orderDate'] = date("m/d/Y", strtotime($this->_order->getCreatedAt()));
     $dataArray['orderTax'] = "";
     $dataArray['orderShipping'] = "";
@@ -78,11 +86,8 @@ class CSVGenerator {
     $billingArray['billLastName'] = $billingAddressObj->getLastName();
     $billingAddresses = $billingAddressObj->getStreet();
     $billingArray['billAddress1'] = $billingAddresses[0];
-    if(count($billingAddresses) > 1) {
-      $billingArray['billAddress2'] = $billingAddresses[1];
-    } else {
-      $billingArray['billAddress2'] = "";
-    }
+    $billingArray['billAddress2'] = (count($billingAddresses) > 1) ? 
+                                    $billingAddresses[1] : "";
     $billingArray['billCity'] = $billingAddressObj->getCity();
     $billingArray['billState'] = $billingAddressObj->getRegionCode();
     $billingArray['billZip'] = $billingAddressObj->getPostcode();
@@ -98,7 +103,7 @@ class CSVGenerator {
    * @param type $item 
    * @return string[]
    */
-  private function getItemData($item, $csvKitFile="/var/www/store/Product1.csv")
+  private function getItemData($item, $csvKitFile="/app/Product1.csv")
   {
   	$isKitItem = $this->isKitItem($csvKitFile, $item->getSku());
     $itemDataArray = [];
@@ -125,13 +130,18 @@ class CSVGenerator {
     $paymentArray['paymentProcess'] = "TRUE";
     $paymentArray['paymentTotal'] = $this->_order->getGrandTotal();
     $paymentArray['paymentMethod'] = $paymentObject->getMethod();
-    $paymentArray['paymentTransactionId'] = ($paymentArray['paymentMethod'] != "cashondelivery")?$paymentObject->getTransactionId():"";
+    $paymentArray['paymentTransactionId'] = ($paymentArray['paymentMethod'] != "cashondelivery") ? 
+                                            $paymentObject->getTransactionId() : "";
     $paymentArray['PaymentMisc'] = "";
-    if(($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal" && $paymentArray['paymentMethod'] != "affirm_gateway")){
+    $isCCMethod = $paymentArray['paymentMethod'] != "cashondelivery" && 
+                  $paymentArray['paymentMethod'] != "paypal_express" && 
+                  $paymentArray['paymentMethod'] != "braintree_paypal" && 
+                  $paymentArray['paymentMethod'] != "affirm_gateway";
+    if ($isCCMethod) {
       $tmpShortYearArray = str_split(strval($paymentObject->getCcExpYear()));
       $ccExp = $paymentObject->getCcExpMonth()."/".$tmpShortYearArray[2].$tmpShortYearArray[3];
     }
-    $paymentArray['paymentExpirationDate'] = ($paymentArray['paymentMethod'] != "cashondelivery" && $paymentArray['paymentMethod'] != "paypal_express" && $paymentArray['paymentMethod'] != "braintree_paypal" && $paymentArray['paymentMethod'] != "affirm_gateway")?$ccExp:"";
+    $paymentArray['paymentExpirationDate'] = ($isCCMethod) ? $ccExp : "";
     return $paymentArray;
   }
 
@@ -224,9 +234,12 @@ class CSVGenerator {
       $this->appendToCSVFile($mergedArray);
     }
     //Populating additonal 3 rows for shipping, subtotal and tax.
-    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("60", "shipping", "0"), $paymentDataArray));
-    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("40"), $paymentDataArray));
-    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, $billingDataArray, $this->getDummyItem("70", "Online SalesTax", "0"), $paymentDataArray));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray, 
+                          $billingDataArray, $this->getDummyItem("60", "shipping", "0"), $paymentDataArray));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray,
+                          $billingDataArray, $this->getDummyItem("40"), $paymentDataArray));
+    $this->appendToCSVFile(array_merge($orderDataArray, $shippingDataArray,
+                          $billingDataArray, $this->getDummyItem("70", "Online SalesTax", "0"), $paymentDataArray));
   }
 
   public function setOrder($order) {
